@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+/ yaha par apne main page ke libk ko link karna hai/
+<a href="tic-tac-toe.html" class="game-button" target="_blank">Tic Tac Toe</a><style>
+  body {
+    background: linear-gradient(135deg, #1f1c2c, #928dab);
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  h1 {
+    margin-bottom: 20px;
+    text-shadow: 0 0 8px #fff;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-gap: 10px;
+  }
+  .cell {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .cell:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  #message {
+    margin-top: 15px;
+    font-size: 1.2rem;
+  }
+  button {
+    margin-top: 15px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    background: #00f0ff;
+    color: #000;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover {
+    background: #0ff;
+    box-shadow: 0 0 10px #0ff;
+  }
+</style>
+</head>
+<body>
+<h1>Tic Tac Toe</h1>
+<div class="board" id="board"></div>
+<div id="message"></div>
+<button onclick="startGame()">Restart</button>
+
+<audio id="clickSound" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3"></audio>
+<audio id="winSound" src="https://freesound.org/data/previews/320/320654_5260877-lq.mp3"></audio>
+<audio id="drawSound" src="https://freesound.org/data/previews/174/174027_3248244-lq.mp3"></audio>
+
+<script>
+const board = document.getElementById('board');
+const message = document.getElementById('message');
+const clickSound = document.getElementById('clickSound');
+const winSound = document.getElementById('winSound');
+const drawSound = document.getElementById('drawSound');
+let cells, currentPlayer, gameActive;
+
+const winningCombos = [
+  [0,1,2], [3,4,5], [6,7,8],
+  [0,3,6], [1,4,7], [2,5,8],
+  [0,4,8], [2,4,6]
+];
+
+function startGame() {
+  board.innerHTML = '';
+  message.textContent = "Your Turn!";
+  currentPlayer = 'X';
+  gameActive = true;
+
+  cells = Array(9).fill(null);
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.index = i;
+    cell.addEventListener('click', handleClick);
+    board.appendChild(cell);
+  }
+}
+
+function handleClick(e) {
+  const index = e.target.dataset.index;
+  if (!gameActive || cells[index]) return;
+  makeMove(index, currentPlayer);
+  clickSound.play();
+  if (checkWinner(currentPlayer)) {
+    message.textContent = `${currentPlayer} Wins!`;
+    winSound.play();
+    gameActive = false;
+    return;
+  }
+  if (cells.every(cell => cell)) {
+    message.textContent = "It's a Draw!";
+    drawSound.play();
+    gameActive = false;
+    return;
+  }
+  currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+  if (currentPlayer === 'O') {
+    message.textContent = "AI's Turn...";
+    setTimeout(aiMove, 500);
+  } else {
+    message.textContent = "Your Turn!";
+  }
+}
+
+function makeMove(index, player) {
+  cells[index] = player;
+  const cellDiv = board.querySelector(`[data-index='${index}']`);
+  cellDiv.textContent = player;
+}
+
+function aiMove() {
+  if (!gameActive) return;
+  let emptyIndices = cells.map((val, i) => val === null ? i : null).filter(i => i !== null);
+  let aiChoice = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+  makeMove(aiChoice, 'O');
+  clickSound.play();
+  if (checkWinner('O')) {
+    message.textContent = "AI Wins!";
+    winSound.play();
+    gameActive = false;
+  } else if (cells.every(cell => cell)) {
+    message.textContent = "It's a Draw!";
+    drawSound.play();
+    gameActive = false;
+  } else {
+    currentPlayer = 'X';
+    message.textContent = "Your Turn!";
+  }
+}
+
+function checkWinner(player) {
+  return winningCombos.some(combo => combo.every(index => cells[index] === player));
+}
+
+startGame();
+</script>
+</body>
+</html>
